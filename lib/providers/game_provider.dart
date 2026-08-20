@@ -46,7 +46,14 @@ class GameProvider extends ChangeNotifier {
       _ties++;
     }
   }
-  void resetBoard() {}
+  void resetBoard() {
+    _board = List.filled(9, '');
+    _currentPlayer = _startingPlayer;
+    _winner = null;
+    _isGameOver = false;
+    _matchSaveFailed = false;
+    notifyListeners();
+  }
   void switchStartingPlayer() {}
 
   void makeMove(int cellIndex) {}
