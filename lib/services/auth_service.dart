@@ -13,11 +13,19 @@ class AuthService {
   Stream<User?> get authStateChanges =>
       isFirebaseReady ? _auth.authStateChanges() : const Stream.empty();
 
+  void _ensureFirebaseReady() {
+    if (!isFirebaseReady) {
+      throw StateError('Firebase is not configured');
+    }
+  }
+
   Future<UserCredential> signIn(String email, String password) {
+    _ensureFirebaseReady();
     return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
   Future<UserCredential> signUp(String email, String password) {
+    _ensureFirebaseReady();
     return _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -25,6 +33,8 @@ class AuthService {
   }
 
   Future<UserCredential?> signInWithGoogle() async {
+    _ensureFirebaseReady();
+
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return null;
 
@@ -38,6 +48,8 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    if (!isFirebaseReady) return;
+
     await Future.wait([
       _auth.signOut(),
       _googleSignIn.signOut(),

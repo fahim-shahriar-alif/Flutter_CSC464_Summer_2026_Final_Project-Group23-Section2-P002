@@ -36,12 +36,17 @@ class MatchModel {
       createdAt = DateTime.now();
     }
 
+    final boardRaw = data['board'];
+    final List<String> board = boardRaw is List
+        ? boardRaw.map((cell) => cell?.toString() ?? '').toList()
+        : List.filled(9, '');
+
     return MatchModel(
       id: id,
-      player1: data['player1'] as String,
-      player2: data['player2'] as String,
-      winner: data['winner'] as String,
-      board: List<String>.from(data['board'] as List),
+      player1: (data['player1'] as String?) ?? '',
+      player2: (data['player2'] as String?) ?? '',
+      winner: (data['winner'] as String?) ?? 'Tie',
+      board: board,
       createdAt: createdAt,
     );
   }
