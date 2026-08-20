@@ -32,8 +32,20 @@ class GameProvider extends ChangeNotifier {
   String get currentPlayerName =>
       _currentPlayer == 'X' ? _player1Name : _player2Name;
 
-  void setPlayerNames(String player1, String player2) {}
-  void updateScore(String winner) {}
+  void setPlayerNames(String player1, String player2) {
+    _player1Name = player1.trim();
+    _player2Name = player2.trim();
+    resetBoard();
+  }
+  void updateScore(String winner) {
+    if (winner == 'X') {
+      _xWins++;
+    } else if (winner == 'O') {
+      _oWins++;
+    } else {
+      _ties++;
+    }
+  }
   void resetBoard() {}
   void switchStartingPlayer() {}
 
