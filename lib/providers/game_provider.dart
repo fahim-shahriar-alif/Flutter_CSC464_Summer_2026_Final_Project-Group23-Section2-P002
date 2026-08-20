@@ -62,7 +62,30 @@ class GameProvider extends ChangeNotifier {
     resetBoard();
   }
 
+  void makeMove(int cellIndex) {
+    if (_isGameOver) return;
+    if (_board[cellIndex].isNotEmpty) return;
 
+    _board[cellIndex] = _currentPlayer;
+
+    final winningPlayer = checkWin();
+
+    if (winningPlayer != null) {
+      _winner = winningPlayer;
+      _isGameOver = true;
+      updateScore(winningPlayer);
+      saveMatchToFirestore();
+    } else if (checkTie()) {
+      _winner = 'Tie';
+      _isGameOver = true;
+      updateScore('Tie');
+      saveMatchToFirestore();
+    } else {
+      _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
+    }
+
+    notifyListeners();
+  }
   String? checkWin() {
     const List<List<int>> winningLines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
