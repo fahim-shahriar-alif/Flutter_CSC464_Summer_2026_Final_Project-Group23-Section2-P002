@@ -37,6 +37,7 @@ class GameProvider extends ChangeNotifier {
     _player2Name = player2.trim();
     resetBoard();
   }
+
   void updateScore(String winner) {
     if (winner == 'X') {
       _xWins++;
@@ -46,6 +47,7 @@ class GameProvider extends ChangeNotifier {
       _ties++;
     }
   }
+
   void resetBoard() {
     _board = List.filled(9, '');
     _currentPlayer = _startingPlayer;
@@ -54,13 +56,79 @@ class GameProvider extends ChangeNotifier {
     _matchSaveFailed = false;
     notifyListeners();
   }
+
   void switchStartingPlayer() {
     _startingPlayer = _startingPlayer == 'X' ? 'O' : 'X';
     resetBoard();
   }
 
-  void makeMove(int cellIndex) {}
-  String? checkWin() => null;
-  bool checkTie() => false;
-  Future<void> saveMatchToFirestore() async {}
+  void makeMove(int cellIndex) {
+    if (_isGameOver) return;
+    if (_board[cellIndex].isNotEmpty) return;
+
+    _board[cellIndex] = _currentPlayer;
+
+    final winningPlayer = checkWin();
+
+    if (winningPlayer != null) {
+      _winner = winningPlayer;
+      _isGameOver = true;
+      updateScore(winningPlayer);
+      saveMatchToFirestore();
+    } else if (checkTie()) {
+      _winner = 'Tie';
+      _isGameOver = true;
+      updateScore('Tie');
+      saveMatchToFirestore();
+    } else {
+      _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
+    }
+
+    notifyListeners();
+  }
+  String? checkWin() {
+    const List<List<int>> winningLines = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6],
+    ];
+
+    for (final line in winningLines) {
+      final firstCell = _board[line[0]];
+      final secondCell = _board[line[1]];
+      final thirdCell = _board[line[2]];
+
+      final lineIsComplete = firstCell.isNotEmpty &&
+          firstCell == secondCell &&
+          secondCell == thirdCell;
+
+      if (lineIsComplete) return firstCell;
+    }
+
+    return null;
+  }
+
+  bool checkTie() {
+    return _board.every((cell) => cell.isNotEmpty);
+  }
+
+  Future<void> saveMatchToFirestore() async {
+    _matchSaveFailed = false;
+
+    try {
+      final completedMatch = MatchModel(
+        player1: _player1Name,
+        player2: _player2Name,
+        winner: _winner!,
+        board: List<String>.from(_board),
+        createdAt: DateTime.now(),
+      );
+      await _firestoreService.saveMatch(completedMatch);
+    } catch (error) {
+      _matchSaveFailed = true;
+      debugPrint('Failed to save match: $error');
+    }
+
+    notifyListeners();
+  }
 }
