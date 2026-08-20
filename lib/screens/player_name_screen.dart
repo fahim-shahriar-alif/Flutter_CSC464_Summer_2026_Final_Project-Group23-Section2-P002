@@ -88,7 +88,7 @@ class _PlayerNameScreenState extends State<PlayerNameScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 😎,
+            const SizedBox(height: 12),
             const Text(
               'Enter a name for each player before starting.',
               textAlign: TextAlign.center,
