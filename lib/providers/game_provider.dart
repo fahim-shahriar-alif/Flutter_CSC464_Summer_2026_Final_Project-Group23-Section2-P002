@@ -32,13 +32,80 @@ class GameProvider extends ChangeNotifier {
   String get currentPlayerName =>
       _currentPlayer == 'X' ? _player1Name : _player2Name;
 
-  void setPlayerNames(String player1, String player2) {}
-  void updateScore(String winner) {}
-  void resetBoard() {}
-  void switchStartingPlayer() {}
+  void setPlayerNames(String player1, String player2) {
+    _player1Name = player1.trim();
+    _player2Name = player2.trim();
+    resetBoard();
+  }
 
-  void makeMove(int cellIndex) {}
-  String? checkWin() => null;
-  bool checkTie() => false;
-  Future<void> saveMatchToFirestore() async {}
+  void updateScore(String winner) {
+    if (winner == 'X') {
+      _xWins++;
+    } else if (winner == 'O') {
+      _oWins++;
+    } else {
+      _ties++;
+    }
+  }
+
+  void resetBoard() {
+    _board = List.filled(9, '');
+    _currentPlayer = _startingPlayer;
+    _winner = null;
+    _isGameOver = false;
+    _matchSaveFailed = false;
+    notifyListeners();
+  }
+
+  void switchStartingPlayer() {
+    _startingPlayer = _startingPlayer == 'X' ? 'O' : 'X';
+    resetBoard();
+  }
+
+
+  String? checkWin() {
+    const List<List<int>> winningLines = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6],
+    ];
+
+    for (final line in winningLines) {
+      final firstCell = _board[line[0]];
+      final secondCell = _board[line[1]];
+      final thirdCell = _board[line[2]];
+
+      final lineIsComplete = firstCell.isNotEmpty &&
+          firstCell == secondCell &&
+          secondCell == thirdCell;
+
+      if (lineIsComplete) return firstCell;
+    }
+
+    return null;
+  }
+
+  bool checkTie() {
+    return _board.every((cell) => cell.isNotEmpty);
+  }
+
+  Future<void> saveMatchToFirestore() async {
+    _matchSaveFailed = false;
+
+    try {
+      final completedMatch = MatchModel(
+        player1: _player1Name,
+        player2: _player2Name,
+        winner: _winner!,
+        board: List<String>.from(_board),
+        createdAt: DateTime.now(),
+      );
+      await _firestoreService.saveMatch(completedMatch);
+    } catch (error) {
+      _matchSaveFailed = true;
+      debugPrint('Failed to save match: $error');
+    }
+
+    notifyListeners();
+  }
 }
