@@ -54,7 +54,10 @@ class GameProvider extends ChangeNotifier {
     _matchSaveFailed = false;
     notifyListeners();
   }
-  void switchStartingPlayer() {}
+  void switchStartingPlayer() {
+    _startingPlayer = _startingPlayer == 'X' ? 'O' : 'X';
+    resetBoard();
+  }
 
   void makeMove(int cellIndex) {}
   String? checkWin() => null;
